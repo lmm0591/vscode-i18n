@@ -1,0 +1,21 @@
+{
+  "name": "vscode-i18n-server",
+  "description": "vscode-i18n-server",
+  "version": "0.0.1",
+  "publisher": "lmm0591",
+  "license": "MIT",
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^3.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.52",
+    "typescript": "^2.1.5"
+  },
+  "scripts": {
+    "compile": "installServerIntoExtension ../i18n ./package.json ./tsconfig.json && tsc -p .",
+    "watch": "installServerIntoExtension ../i18n ./package.json ./tsconfig.json && tsc --watch -p ."
+  }
+}
