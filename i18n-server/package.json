@@ -9,14 +9,17 @@
   },
   "dependencies": {
     "filter-files": "^0.4.0",
+    "lodash": "^4.17.4",
     "vscode-languageserver": "^3.0.4"
   },
   "devDependencies": {
     "@types/node": "^6.0.52",
+    "mocha": "^3.2.0",
     "typescript": "^2.1.5"
   },
   "scripts": {
     "compile": "installServerIntoExtension ../i18n ./package.json ./tsconfig.json && tsc -p .",
-    "watch": "installServerIntoExtension ../i18n ./package.json ./tsconfig.json && tsc --watch -p ."
+    "watch": "installServerIntoExtension ../i18n ./package.json ./tsconfig.json && tsc --watch -p .",
+    "test": "tsc --watch -p ./test"
   }
 }

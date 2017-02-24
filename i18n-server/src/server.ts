@@ -93,7 +93,7 @@ interface I18nSyntax {
 	capture: String
 }
 
-function  parseI18nSyntax(text: string) : I18nSyntax{ 
+function parseI18nSyntax(text: string) : I18nSyntax{ 
 	let syntax: I18nSyntax;
 	// TODO:应该是返回多个对象
 	text.replace(i18nFunReg, (matching, capture, startIndex, content) => {

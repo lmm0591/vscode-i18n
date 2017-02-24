@@ -3,6 +3,27 @@
 	// List of configurations. Add new configurations or edit existing ones.
 	"configurations": [
 		{
+			"type": "node",
+			"request": "launch",
+			"name": "Tests",
+			"cwd": "${workspaceRoot}",
+			"runtimeExecutable": "${workspaceRoot}/node_modules/.bin/mocha",
+			"windows": {
+				"runtimeExecutable": "${workspaceRoot}/node_modules/.bin/mocha.cmd"
+			},
+			"runtimeArgs": [
+				"-u",
+				"tdd",
+				"--timeout",
+				"999999",
+				"--colors",
+				"-w",
+				"${workspaceRoot}/dist/test"
+			],
+			"internalConsoleOptions": "openOnSessionStart",
+			"preLaunchTask": "npm"
+		},
+		{
 			"name": "Attach",
 			"type": "node",
 			"request": "attach",
