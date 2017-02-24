@@ -11,26 +11,27 @@
         "Other"
     ],
     "activationEvents": [
-        "onLanguage:plaintext"
+        "onLanguage:javascript"
     ],
     "main": "./out/src/extension",
     "contributes": {
+        "configuration": {
+            "type": "object",
+            "title": "vscode-i18n",
+            "properties": {
+                "i18n.dirs": {
+                    "default": ["./i18n"],
+                    "type": "array",
+                    "items": {
+                        "anyOf": [{"type": "string"}]
+                    }
+                }
+            }
+        },
         "commands": [{
             "command": "extension.sayHello",
             "title": "Hello World"
         }]
-    },
-    "configuration": {
-        "type": "object",
-        "title": "vscode-i18n",
-        "properties": {
-            "i18n.dir": {
-                "type": "array",
-                "items": {
-                    "anyOf": [{"type": "string"}]
-                }
-            }
-        }
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",

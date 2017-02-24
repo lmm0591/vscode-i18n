@@ -6,9 +6,9 @@
 			"name": "Attach",
 			"type": "node",
 			"request": "attach",
-			"port": 6009,
+			"port": 6010,
 			"sourceMaps": true,
-			"outFiles": [ "${workspaceRoot}/../client/server/**/*.js" ],
+			"outFiles": [ "${workspaceRoot}/../i18n/server/**/*.js" ],
 			"protocol": "legacy"
 		}
 	]

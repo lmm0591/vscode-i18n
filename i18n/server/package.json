@@ -8,6 +8,7 @@
     "node": "*"
   },
   "dependencies": {
+    "filter-files": "^0.4.0",
     "vscode-languageserver": "^3.0.4"
   },
   "devDependencies": {

@@ -9,8 +9,13 @@ import {
 	createConnection, IConnection, TextDocumentSyncKind,
 	TextDocuments, TextDocument, Diagnostic, DiagnosticSeverity,
 	InitializeParams, InitializeResult, TextDocumentPositionParams,
-	CompletionItem, CompletionItemKind
+	CompletionItem, CompletionItemKind, ShowMessageNotification
 } from 'vscode-languageserver';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as filter from 'filter-files';
+
+
 
 // Create a connection for the server. The connection uses Node's IPC as a transport
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
@@ -26,6 +31,7 @@ documents.listen(connection);
 // in the passed params the rootPath of the workspace plus the client capabilities. 
 let workspaceRoot: string;
 connection.onInitialize((params): InitializeResult => {
+	debugger
 	workspaceRoot = params.rootPath;
 	return {
 		capabilities: {
@@ -47,44 +53,99 @@ documents.onDidChangeContent((change) => {
 
 // The settings interface describe the server relevant settings part
 interface Settings {
-	languageServerExample: ExampleSettings;
+	dirs: string[];
 }
 
-// These are the example settings we defined in the client's package.json
-// file
-interface ExampleSettings {
-	maxNumberOfProblems: number;
+interface i18nFile { 
+	path: string,
+	content: Object
 }
 
-// hold the maxNumberOfProblems setting
-let maxNumberOfProblems: number;
+let i18nDirs: string[]; 
+let i18nFileMap: Object = {};
+
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
-	let settings = <Settings>change.settings;
-	maxNumberOfProblems = settings.languageServerExample.maxNumberOfProblems || 100;
+	let settings = <Settings> change.settings.i18n;
+	settings.dirs.forEach(dir => {
+		let i18nDir = path.join(workspaceRoot, dir)
+		filter(i18nDir, filename => path.extname(filename) === '.json' , (err, filePaths) => {
+			filePaths.forEach(filePath => { 
+				fs.readFile(filePath, 'utf-8', (err, text) => { 
+					i18nFileMap[filePath] = {
+						path: filePath,
+						content: JSON.parse(text)
+					}
+				});
+			})
+		});
+	})
 	// Revalidate any open text documents
 	documents.all().forEach(validateTextDocument);
 });
 
+const i18nFunReg = /__\('(.+?)'\)/g
+
+interface I18nSyntax { 
+	start: number,
+	end: number,
+	capture: String
+}
+
+function  parseI18nSyntax(text: string) : I18nSyntax{ 
+	let syntax: I18nSyntax;
+	// TODO:应该是返回多个对象
+	text.replace(i18nFunReg, (matching, capture, startIndex, content) => {
+		syntax = {
+			start: startIndex + 3,
+			end: startIndex + matching.length - 1,
+			capture: capture
+		}
+		return matching
+	})
+	return syntax
+}
+
 function validateTextDocument(textDocument: TextDocument): void {
 	let diagnostics: Diagnostic[] = [];
 	let lines = textDocument.getText().split(/\r?\n/g);
-	let problems = 0;
-	for (var i = 0; i < lines.length && problems < maxNumberOfProblems; i++) {
+	for (var i = 0; i < lines.length; i++) {
 		let line = lines[i];
-		let index = line.indexOf('typescript');
-		if (index >= 0) {
-			problems++;
-			diagnostics.push({
-				severity: DiagnosticSeverity.Information,
-				range: {
-					start: { line: i, character: index},
-					end: { line: i, character: index + 10 }
-				},
-				message: `${line.substr(index, 10)} should be spelled TypeScript`,
-				source: 'ex'
-			});
+		let i18nSyntax = parseI18nSyntax(line)
+		if (i18nSyntax) {
+			let isMatchTranslateFile : boolean = false
+			for (var mapkey in i18nFileMap) { 
+				let i18n = i18nFileMap[mapkey]
+				for (let key in i18n.content) {
+					if (key === i18nSyntax.capture) { 
+						isMatchTranslateFile = true
+						let pathParse = path.parse(i18n.path)
+						diagnostics.push({
+							severity: DiagnosticSeverity.Information,
+							range: {
+								start: { line: i, character: i18nSyntax.start},
+								end: { line: i, character: i18nSyntax.end }
+							},
+							message: `${pathParse.name}${pathParse.ext}: ${i18n.content[key]}`,
+							source: 'i18n'
+						});
+					}
+				}
+			}
+
+			let isReciveI18NMap: boolean = Object.keys(i18nFileMap).length > 0;
+			if (isReciveI18NMap && isMatchTranslateFile === false) { 
+				diagnostics.push({
+					severity: DiagnosticSeverity.Error,
+					range: {
+						start: { line: i, character: i18nSyntax.start},
+						end: { line: i, character: i18nSyntax.end }
+					},
+					message: `没有匹配到翻译文件`,
+					source: 'i18n'
+				});
+			}
 		}
 	}
 	// Send the computed diagnostics to VSCode.
@@ -136,6 +197,7 @@ connection.onDidOpenTextDocument((params) => {
 	// A text document got opened in VSCode.
 	// params.textDocument.uri uniquely identifies the document. For documents store on disk this is a file URI.
 	// params.textDocument.text the initial full content of the document.
+	// validateTextDocument(params.textDocument);
 	connection.console.log(`${params.textDocument.uri} opened.`);
 });
 
