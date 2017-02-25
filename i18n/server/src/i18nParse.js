@@ -1,5 +1,6 @@
 "use strict";
 const i18nFunReg = /__\('(.+?)'\)/g;
+// 获取一组翻译关键字的token 
 function parseI18nSyntax(text) {
     let syntaxs = [];
     text.replace(i18nFunReg, (matching, capture, startIndex, content) => {
@@ -14,22 +15,22 @@ function parseI18nSyntax(text) {
 }
 exports.parseI18nSyntax = parseI18nSyntax;
 function parseContent(line, fileMap, captureFn, failFn) {
-    let i18nSyntax = parseI18nSyntax(line);
-    if (i18nSyntax) {
-        let isMatchTranslateFile = false;
+    let i18nSyntaxs = parseI18nSyntax(line);
+    i18nSyntaxs.forEach(i18nSyntax => {
+        let isMatchFile = false;
         for (var fileName in fileMap) {
             for (let key in fileMap[fileName].content) {
                 if (key === i18nSyntax.capture) {
-                    isMatchTranslateFile = true;
-                    captureFn(i18nSyntax);
+                    isMatchFile = true;
+                    captureFn(i18nSyntax, fileMap[fileName]);
                 }
             }
         }
         let isReciveI18NMap = Object.keys(fileMap).length > 0;
-        if (isReciveI18NMap && isMatchTranslateFile === false) {
-            failFn(i18nSyntax);
+        if (isReciveI18NMap && isMatchFile === false) {
+            failFn && failFn(i18nSyntax);
         }
-    }
+    });
 }
 exports.parseContent = parseContent;
 //# sourceMappingURL=i18nParse.js.map

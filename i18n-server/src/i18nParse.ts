@@ -7,6 +7,7 @@ interface I18nSyntax {
 }
 
 const i18nFunReg = /__\('(.+?)'\)/g
+// 获取一组翻译关键字的token 
 function parseI18nSyntax(text: string): I18nSyntax [] { 
   let syntaxs = [];
 	text.replace(i18nFunReg, (matching, capture, startIndex, content) => {
@@ -21,23 +22,23 @@ function parseI18nSyntax(text: string): I18nSyntax [] {
 }
 
 
-function parseContent(line: string, fileMap: Object, captureFn: Function, failFn: Function) { 
-		let i18nSyntax = parseI18nSyntax(line)
-		if (i18nSyntax) {
-			let isMatchTranslateFile : boolean = false
-			for (var fileName in fileMap) { 
-				for (let key in fileMap[fileName].content) {
-					if (key === i18nSyntax.capture) { 
-						isMatchTranslateFile = true
-            captureFn(i18nSyntax)
-					}
-				}
-			}
-			let isReciveI18NMap: boolean = Object.keys(fileMap).length > 0;
-			if (isReciveI18NMap && isMatchTranslateFile === false) { 
-        failFn(i18nSyntax)
-			}
-		}
+function parseContent(line: string, fileMap: Object, captureFn: Function, failFn? : Function) { 
+  let i18nSyntaxs = parseI18nSyntax(line)
+  i18nSyntaxs.forEach(i18nSyntax => { 
+    let isMatchFile : boolean = false
+    for (var fileName in fileMap) { 
+      for (let key in fileMap[fileName].content) {
+        if (key === i18nSyntax.capture) { 
+          isMatchFile = true
+          captureFn(i18nSyntax, fileMap[fileName])
+        }
+      }
+    }
+    let isReciveI18NMap: boolean = Object.keys(fileMap).length > 0;
+    if (isReciveI18NMap && isMatchFile === false) { 
+      failFn && failFn(i18nSyntax)
+    }
+  })
 }
 
 export {

@@ -14,6 +14,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as filter from 'filter-files';
+import * as i18nParse from './i18nParse';
 
 
 
@@ -28,10 +29,9 @@ let documents: TextDocuments = new TextDocuments();
 documents.listen(connection);
 
 // After the server has started the client sends an initialize request. The server receives
-// in the passed params the rootPath of the workspace plus the client capabilities. 
+// in the passed params the rootPath of the workspace plus the client capabilities.
 let workspaceRoot: string;
 connection.onInitialize((params): InitializeResult => {
-	debugger
 	workspaceRoot = params.rootPath;
 	return {
 		capabilities: {
@@ -56,12 +56,12 @@ interface Settings {
 	dirs: string[];
 }
 
-interface i18nFile { 
+interface i18nFile {
 	path: string,
 	content: Object
 }
 
-let i18nDirs: string[]; 
+let i18nDirs: string[];
 let i18nFileMap: Object = {};
 
 // The settings have changed. Is send on server activation
@@ -71,8 +71,8 @@ connection.onDidChangeConfiguration((change) => {
 	settings.dirs.forEach(dir => {
 		let i18nDir = path.join(workspaceRoot, dir)
 		filter(i18nDir, filename => path.extname(filename) === '.json' , (err, filePaths) => {
-			filePaths.forEach(filePath => { 
-				fs.readFile(filePath, 'utf-8', (err, text) => { 
+			filePaths.forEach(filePath => {
+				fs.readFile(filePath, 'utf-8', (err, text) => {
 					i18nFileMap[filePath] = {
 						path: filePath,
 						content: JSON.parse(text)
@@ -85,69 +85,33 @@ connection.onDidChangeConfiguration((change) => {
 	documents.all().forEach(validateTextDocument);
 });
 
-const i18nFunReg = /__\('(.+?)'\)/g
-
-interface I18nSyntax { 
-	start: number,
-	end: number,
-	capture: String
-}
-
-function parseI18nSyntax(text: string) : I18nSyntax{ 
-	let syntax: I18nSyntax;
-	// TODO:应该是返回多个对象
-	text.replace(i18nFunReg, (matching, capture, startIndex, content) => {
-		syntax = {
-			start: startIndex + 3,
-			end: startIndex + matching.length - 1,
-			capture: capture
-		}
-		return matching
-	})
-	return syntax
-}
-
 function validateTextDocument(textDocument: TextDocument): void {
 	let diagnostics: Diagnostic[] = [];
-	let lines = textDocument.getText().split(/\r?\n/g);
-	for (var i = 0; i < lines.length; i++) {
-		let line = lines[i];
-		let i18nSyntax = parseI18nSyntax(line)
-		if (i18nSyntax) {
-			let isMatchTranslateFile : boolean = false
-			for (var mapkey in i18nFileMap) { 
-				let i18n = i18nFileMap[mapkey]
-				for (let key in i18n.content) {
-					if (key === i18nSyntax.capture) { 
-						isMatchTranslateFile = true
-						let pathParse = path.parse(i18n.path)
-						diagnostics.push({
-							severity: DiagnosticSeverity.Information,
-							range: {
-								start: { line: i, character: i18nSyntax.start},
-								end: { line: i, character: i18nSyntax.end }
-							},
-							message: `${pathParse.name}${pathParse.ext}: ${i18n.content[key]}`,
-							source: 'i18n'
-						});
-					}
-				}
-			}
-
-			let isReciveI18NMap: boolean = Object.keys(i18nFileMap).length > 0;
-			if (isReciveI18NMap && isMatchTranslateFile === false) { 
+  let lines = textDocument.getText().split(/\r?\n/g);
+  lines.forEach((line, i) => {
+    i18nParse.parseContent(line, i18nFileMap, (token, file) => {
+      let pathParse = path.parse(file.path)
+      diagnostics.push({
+        severity: DiagnosticSeverity.Information,
+        range: {
+          start: { line: i, character: token.start},
+          end: { line: i, character: token.end }
+        },
+        message: `${pathParse.name}${pathParse.ext}: ${file.content[token.capture]}`,
+        source: 'i18n'
+      });
+    }, token => {
 				diagnostics.push({
 					severity: DiagnosticSeverity.Error,
 					range: {
-						start: { line: i, character: i18nSyntax.start},
-						end: { line: i, character: i18nSyntax.end }
+						start: { line: i, character: token.start},
+						end: { line: i, character: token.end }
 					},
 					message: `没有匹配到翻译文件`,
 					source: 'i18n'
 				});
-			}
-		}
-	}
+    })
+  })
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
@@ -160,7 +124,7 @@ connection.onDidChangeWatchedFiles((change) => {
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-	// The pass parameter contains the position of the text document in 
+	// The pass parameter contains the position of the text document in
 	// which code complete got requested. For the example we ignore this
 	// info and always provide the same completion items.
 	return [
