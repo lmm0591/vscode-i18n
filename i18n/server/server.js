@@ -40,6 +40,7 @@ documents.onDidChangeContent((change) => {
 let i18nDirs;
 let i18nFileMap = {};
 let settings;
+let completionList = [];
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
@@ -65,7 +66,6 @@ function validateTextDocument(textDocument) {
     let lines = textDocument.getText().split(/\r?\n/g);
     lines.forEach((line, i) => {
         i18nParse.parseContent(line, i18nFileMap, (token, file) => {
-            connection.console.log(JSON.stringify(settings));
             if (settings.showMatchInfo) {
                 let pathParse = path.parse(file.path);
                 diagnostics.push({
@@ -97,38 +97,32 @@ connection.onDidChangeWatchedFiles((change) => {
     // Monitored files have change in VSCode
     connection.console.log('We received an file change event');
 });
+let isRecive = false;
 // This handler provides the initial list of the completion items.
 connection.onCompletion((textDocumentPosition) => {
     // The pass parameter contains the position of the text document in
     // which code complete got requested. For the example we ignore this
     // info and always provide the same completion items.
-    return [
-        {
-            label: 'TypeScript',
-            kind: vscode_languageserver_1.CompletionItemKind.Text,
-            data: 1
-        },
-        {
-            label: 'JavaScript',
-            kind: vscode_languageserver_1.CompletionItemKind.Text,
-            data: 2
-        }
-    ];
+    // TODO: 可以使用高阶函数
+    connection.console.info(completionList.length.toString());
+    if (isRecive == false) {
+        isRecive = true;
+        let autoCompletionList = i18nParse.getI18nKeyList(i18nFileMap);
+        completionList = autoCompletionList.map((completion, i) => {
+            return {
+                label: completion.label,
+                data: i,
+                kind: vscode_languageserver_1.CompletionItemKind.Text
+            };
+        });
+    }
+    return completionList;
 });
 // This handler resolve additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve((item) => {
-    if (item.data === 1) {
-        item.detail = 'TypeScript details',
-            item.documentation = 'TypeScript documentation 1111';
-    }
-    else if (item.data === 2) {
-        item.detail = 'JavaScript details',
-            item.documentation = 'JavaScript documentation 2222';
-    }
     return item;
 });
-let t;
 /*
 connection.onDidOpenTextDocument((params) => {
     // A text document got opened in VSCode.

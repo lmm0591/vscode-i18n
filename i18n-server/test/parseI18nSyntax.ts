@@ -3,9 +3,9 @@ import * as assert from 'assert';
 import { suite , test } from 'mocha';
 import * as i18nParse from '../src/i18nParse'
 
-suite("解析文本翻译关键字", () => {
+suite("parseI18nSyntax", () => {
 
-    test("解析单个", () => { 
+    test("解析单个", () => {
         let tokens = i18nParse.parseI18nSyntax("__('NAME')")
         assert.equal(tokens.length, 1)
         let token = tokens[0]
@@ -14,7 +14,7 @@ suite("解析文本翻译关键字", () => {
         assert.equal(token.end, 9)
     })
 
-    test("解析多个", () => { 
+    test("解析多个", () => {
         let tokens = i18nParse.parseI18nSyntax("__('NAME') __('I18N')")
         assert.equal(tokens.length, 2)
         let token1 = tokens[0]
@@ -28,7 +28,7 @@ suite("解析文本翻译关键字", () => {
         assert.equal(token2.end, 20)
     })
 
-    test("混淆解析", () => { 
+    test("混淆解析", () => {
         let tokens = i18nParse.parseI18nSyntax(" __('NAME') NAME __('I18N') ")
         assert.equal(tokens.length, 2)
         let token1 = tokens[0]

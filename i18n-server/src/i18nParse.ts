@@ -1,14 +1,24 @@
-import * as _ from 'lodash'
 
-interface I18nSyntax { 
+export interface I18nSyntax {
 	start: number,
 	end: number,
 	capture: String
 }
 
+export interface AutoCompletionList {
+  label: string,
+  filePath: string,
+  message: string
+}
+
+export interface i18nFile {
+	path: string,
+	content: Object
+}
+
 const i18nFunReg = /__\('(.+?)'\)/g
-// 获取一组翻译关键字的token 
-function parseI18nSyntax(text: string): I18nSyntax [] { 
+// 获取一组翻译关键字的token
+function parseI18nSyntax(text: string): I18nSyntax [] {
   let syntaxs = [];
 	text.replace(i18nFunReg, (matching, capture, startIndex, content) => {
 		syntaxs.push({
@@ -21,21 +31,35 @@ function parseI18nSyntax(text: string): I18nSyntax [] {
 	return syntaxs
 }
 
+function getI18nKeyList(fileMap: Object): AutoCompletionList[] {
+  let completionList: AutoCompletionList[] = []
+  for (var fileName in fileMap) {
+    var file = <i18nFile>fileMap[fileName];
+    for (let key in file.content) {
+      completionList.push({
+        label: key,
+        message: file.content[key],
+        filePath: file.path
+      })
+    }
+  }
+  return completionList
+}
 
-function parseContent(line: string, fileMap: Object, captureFn: Function, failFn? : Function) { 
+function parseContent(line: string, fileMap: Object, captureFn: Function, failFn? : Function) {
   let i18nSyntaxs = parseI18nSyntax(line)
-  i18nSyntaxs.forEach(i18nSyntax => { 
+  i18nSyntaxs.forEach(i18nSyntax => {
     let isMatchFile : boolean = false
-    for (var fileName in fileMap) { 
+    for (var fileName in fileMap) {
       for (let key in fileMap[fileName].content) {
-        if (key === i18nSyntax.capture) { 
+        if (key === i18nSyntax.capture) {
           isMatchFile = true
           captureFn(i18nSyntax, fileMap[fileName])
         }
       }
     }
     let isReciveI18NMap: boolean = Object.keys(fileMap).length > 0;
-    if (isReciveI18NMap && isMatchFile === false) { 
+    if (isReciveI18NMap && isMatchFile === false) {
       failFn && failFn(i18nSyntax)
     }
   })
@@ -43,5 +67,6 @@ function parseContent(line: string, fileMap: Object, captureFn: Function, failFn
 
 export {
   parseI18nSyntax,
-  parseContent
+  parseContent,
+  getI18nKeyList
 }

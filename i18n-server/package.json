@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "filter-files": "^0.4.0",
-    "lodash": "^4.17.4",
+    "underscore": "^1.8.3",
     "vscode-languageserver": "^3.0.4"
   },
   "devDependencies": {

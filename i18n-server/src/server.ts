@@ -14,9 +14,8 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as filter from 'filter-files';
+import { findWhere } from 'underscore'
 import * as i18nParse from './i18nParse';
-
-
 
 // Create a connection for the server. The connection uses Node's IPC as a transport
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
@@ -57,14 +56,10 @@ interface Settings {
   showMatchInfo: boolean
 }
 
-interface i18nFile {
-	path: string,
-	content: Object
-}
-
 let i18nDirs: string[];
 let i18nFileMap: Object = {};
 let settings: Settings;
+let completionList: CompletionItem[] = []
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
@@ -91,7 +86,6 @@ function validateTextDocument(textDocument: TextDocument): void {
   let lines = textDocument.getText().split(/\r?\n/g);
   lines.forEach((line, i) => {
     i18nParse.parseContent(line, i18nFileMap, (token, file) => {
-      connection.console.log(JSON.stringify(settings))
       if (settings.showMatchInfo) {
         let pathParse = path.parse(file.path)
         diagnostics.push({
@@ -125,40 +119,39 @@ connection.onDidChangeWatchedFiles((change) => {
 	connection.console.log('We received an file change event');
 });
 
-
+let isRecive = false
 // This handler provides the initial list of the completion items.
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
 	// The pass parameter contains the position of the text document in
 	// which code complete got requested. For the example we ignore this
 	// info and always provide the same completion items.
-	return [
-		{
-			label: 'TypeScript',
-			kind: CompletionItemKind.Text,
-			data: 1
-		},
-		{
-			label: 'JavaScript',
-			kind: CompletionItemKind.Text,
-			data: 2
-		}
-	]
+
+  // TODO: 可以使用高阶函数
+  connection.console.info(completionList.length.toString())
+  if (isRecive == false) {
+    isRecive = true
+    let autoCompletionList = <i18nParse.AutoCompletionList[]>i18nParse.getI18nKeyList(i18nFileMap)
+    completionList = <CompletionItem[]> autoCompletionList.map((completion, i) => {
+      return {
+        label: completion.label,
+        data: i,
+        kind: CompletionItemKind.Text
+        // detail: completion.filePath,
+        // documentation: completion.message
+      }
+    })
+  }
+  return completionList
+
+
 });
 
 // This handler resolve additional information for the item selected in
 // the completion list.
+
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-	if (item.data === 1) {
-		item.detail = 'TypeScript details',
-		item.documentation = 'TypeScript documentation 1111'
-	} else if (item.data === 2) {
-		item.detail = 'JavaScript details',
-		item.documentation = 'JavaScript documentation 2222'
-	}
 	return item;
 });
-
-let t: Thenable<string>;
 
 /*
 connection.onDidOpenTextDocument((params) => {

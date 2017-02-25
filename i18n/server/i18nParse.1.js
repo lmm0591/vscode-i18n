@@ -16,19 +16,12 @@ function parseI18nSyntax(text) {
 exports.parseI18nSyntax = parseI18nSyntax;
 function getI18nKeyList(fileMap) {
     let completionList = [];
-    for (var fileName in fileMap) {
-        var file = fileMap[fileName];
-        for (let key in file.content) {
-            completionList.push({
-                label: key,
-                message: file.content[key],
-                filePath: file.path
-            });
-        }
+    for (var key in fileMap) {
+        var file = fileMap[key];
+        file.con;
     }
     return completionList;
 }
-exports.getI18nKeyList = getI18nKeyList;
 function parseContent(line, fileMap, captureFn, failFn) {
     let i18nSyntaxs = parseI18nSyntax(line);
     i18nSyntaxs.forEach(i18nSyntax => {
@@ -48,4 +41,4 @@ function parseContent(line, fileMap, captureFn, failFn) {
     });
 }
 exports.parseContent = parseContent;
-//# sourceMappingURL=i18nParse.js.map
+//# sourceMappingURL=i18nParse.1.js.map
