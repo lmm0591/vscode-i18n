@@ -7,6 +7,7 @@ const vscode_languageserver_1 = require("vscode-languageserver");
 const fs = require("fs");
 const path = require("path");
 const filter = require("filter-files");
+const i18nParse = require("./i18nParse");
 // Create a connection for the server. The connection uses Node's IPC as a transport
 let connection = vscode_languageserver_1.createConnection(new vscode_languageserver_1.IPCMessageReader(process), new vscode_languageserver_1.IPCMessageWriter(process));
 // Create a simple text document manager. The text document manager
@@ -16,10 +17,9 @@ let documents = new vscode_languageserver_1.TextDocuments();
 // for open, change and close text document events
 documents.listen(connection);
 // After the server has started the client sends an initialize request. The server receives
-// in the passed params the rootPath of the workspace plus the client capabilities. 
+// in the passed params the rootPath of the workspace plus the client capabilities.
 let workspaceRoot;
 connection.onInitialize((params) => {
-    debugger;
     workspaceRoot = params.rootPath;
     return {
         capabilities: {
@@ -39,10 +39,11 @@ documents.onDidChangeContent((change) => {
 });
 let i18nDirs;
 let i18nFileMap = {};
+let settings;
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
-    let settings = change.settings.i18n;
+    settings = change.settings.i18n;
     settings.dirs.forEach(dir => {
         let i18nDir = path.join(workspaceRoot, dir);
         filter(i18nDir, filename => path.extname(filename) === '.json', (err, filePaths) => {
@@ -59,60 +60,36 @@ connection.onDidChangeConfiguration((change) => {
     // Revalidate any open text documents
     documents.all().forEach(validateTextDocument);
 });
-const i18nFunReg = /__\('(.+?)'\)/g;
-function parseI18nSyntax(text) {
-    let syntax;
-    // TODO:应该是返回多个对象
-    text.replace(i18nFunReg, (matching, capture, startIndex, content) => {
-        syntax = {
-            start: startIndex + 3,
-            end: startIndex + matching.length - 1,
-            capture: capture
-        };
-        return matching;
-    });
-    return syntax;
-}
 function validateTextDocument(textDocument) {
     let diagnostics = [];
     let lines = textDocument.getText().split(/\r?\n/g);
-    for (var i = 0; i < lines.length; i++) {
-        let line = lines[i];
-        let i18nSyntax = parseI18nSyntax(line);
-        if (i18nSyntax) {
-            let isMatchTranslateFile = false;
-            for (var mapkey in i18nFileMap) {
-                let i18n = i18nFileMap[mapkey];
-                for (let key in i18n.content) {
-                    if (key === i18nSyntax.capture) {
-                        isMatchTranslateFile = true;
-                        let pathParse = path.parse(i18n.path);
-                        diagnostics.push({
-                            severity: vscode_languageserver_1.DiagnosticSeverity.Information,
-                            range: {
-                                start: { line: i, character: i18nSyntax.start },
-                                end: { line: i, character: i18nSyntax.end }
-                            },
-                            message: `${pathParse.name}${pathParse.ext}: ${i18n.content[key]}`,
-                            source: 'i18n'
-                        });
-                    }
-                }
-            }
-            let isReciveI18NMap = Object.keys(i18nFileMap).length > 0;
-            if (isReciveI18NMap && isMatchTranslateFile === false) {
+    lines.forEach((line, i) => {
+        i18nParse.parseContent(line, i18nFileMap, (token, file) => {
+            connection.console.log(JSON.stringify(settings));
+            if (settings.showMatchInfo) {
+                let pathParse = path.parse(file.path);
                 diagnostics.push({
-                    severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                    severity: vscode_languageserver_1.DiagnosticSeverity.Information,
                     range: {
-                        start: { line: i, character: i18nSyntax.start },
-                        end: { line: i, character: i18nSyntax.end }
+                        start: { line: i, character: token.start },
+                        end: { line: i, character: token.end }
                     },
-                    message: `没有匹配到翻译文件`,
+                    message: `${pathParse.name}${pathParse.ext}: ${file.content[token.capture]}`,
                     source: 'i18n'
                 });
             }
-        }
-    }
+        }, token => {
+            diagnostics.push({
+                severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                range: {
+                    start: { line: i, character: token.start },
+                    end: { line: i, character: token.end }
+                },
+                message: `没有匹配到翻译文件`,
+                source: 'i18n'
+            });
+        });
+    });
     // Send the computed diagnostics to VSCode.
     connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
@@ -122,7 +99,7 @@ connection.onDidChangeWatchedFiles((change) => {
 });
 // This handler provides the initial list of the completion items.
 connection.onCompletion((textDocumentPosition) => {
-    // The pass parameter contains the position of the text document in 
+    // The pass parameter contains the position of the text document in
     // which code complete got requested. For the example we ignore this
     // info and always provide the same completion items.
     return [

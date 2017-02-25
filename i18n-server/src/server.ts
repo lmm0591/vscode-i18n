@@ -53,7 +53,8 @@ documents.onDidChangeContent((change) => {
 
 // The settings interface describe the server relevant settings part
 interface Settings {
-	dirs: string[];
+  dirs: string[],
+  showMatchInfo: boolean
 }
 
 interface i18nFile {
@@ -63,22 +64,22 @@ interface i18nFile {
 
 let i18nDirs: string[];
 let i18nFileMap: Object = {};
-
+let settings: Settings;
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
-	let settings = <Settings> change.settings.i18n;
+	settings = <Settings> change.settings.i18n;
 	settings.dirs.forEach(dir => {
 		let i18nDir = path.join(workspaceRoot, dir)
-		filter(i18nDir, filename => path.extname(filename) === '.json' , (err, filePaths) => {
-			filePaths.forEach(filePath => {
-				fs.readFile(filePath, 'utf-8', (err, text) => {
-					i18nFileMap[filePath] = {
-						path: filePath,
-						content: JSON.parse(text)
-					}
-				});
-			})
+    filter(i18nDir, filename => path.extname(filename) === '.json', (err, filePaths) => {
+      filePaths.forEach(filePath => {
+        fs.readFile(filePath, 'utf-8', (err, text) => {
+          i18nFileMap[filePath] = {
+            path: filePath,
+            content: JSON.parse(text)
+          }
+        });
+      })
 		});
 	})
 	// Revalidate any open text documents
@@ -90,16 +91,19 @@ function validateTextDocument(textDocument: TextDocument): void {
   let lines = textDocument.getText().split(/\r?\n/g);
   lines.forEach((line, i) => {
     i18nParse.parseContent(line, i18nFileMap, (token, file) => {
-      let pathParse = path.parse(file.path)
-      diagnostics.push({
-        severity: DiagnosticSeverity.Information,
-        range: {
-          start: { line: i, character: token.start},
-          end: { line: i, character: token.end }
-        },
-        message: `${pathParse.name}${pathParse.ext}: ${file.content[token.capture]}`,
-        source: 'i18n'
-      });
+      connection.console.log(JSON.stringify(settings))
+      if (settings.showMatchInfo) {
+        let pathParse = path.parse(file.path)
+        diagnostics.push({
+          severity: DiagnosticSeverity.Information,
+          range: {
+            start: { line: i, character: token.start},
+            end: { line: i, character: token.end }
+          },
+          message: `${pathParse.name}${pathParse.ext}: ${file.content[token.capture]}`,
+          source: 'i18n'
+        });
+      }
     }, token => {
 				diagnostics.push({
 					severity: DiagnosticSeverity.Error,

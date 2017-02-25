@@ -20,14 +20,13 @@
 				"-w",
 				"${workspaceRoot}/dist/test"
 			],
-			"internalConsoleOptions": "openOnSessionStart",
-			"preLaunchTask": "npm"
+			"internalConsoleOptions": "openOnSessionStart"
 		},
 		{
 			"name": "Attach",
 			"type": "node",
 			"request": "attach",
-			"port": 6010,
+			"port": 6009,
 			"sourceMaps": true,
 			"outFiles": [ "${workspaceRoot}/../i18n/server/**/*.js" ],
 			"protocol": "legacy"
