@@ -54,7 +54,8 @@ documents.onDidChangeContent((change) => {
 interface Settings {
   dirs: string[],
   showMatchInfo: boolean,
-  filterAutoCompletion: string
+  filterAutoCompletion: string,
+  enableAutoCompletion: boolean
 }
 
 let i18nDirs: string[];
@@ -128,22 +129,30 @@ connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): Comp
 	// info and always provide the same completion items.
 
   // TODO: 可以使用高阶函数
-  connection.console.info(completionList.length.toString())
-  if (isRecive == false) {
-    isRecive = true
-    let filter = settings.filterAutoCompletion ? new RegExp(settings.filterAutoCompletion, 'i') : undefined
-    let autoCompletionList = <i18nParse.AutoCompletionList[]>i18nParse.getI18nKeyList(i18nFileMap, filter)
-    completionList = <CompletionItem[]> autoCompletionList.map((completion, i) => {
-      return {
-        label: completion.label,
-        data: i,
-        kind: CompletionItemKind.Text
-        // detail: completion.filePath,
-        // documentation: completion.message
-      }
-    })
+  let textDocument = documents.get(textDocumentPosition.textDocument.uri);
+  let lines = textDocument.getText().split(/\r?\n/g);
+  let line = lines[textDocumentPosition.position.line]
+  let tokens = i18nParse.parseI18nSyntax(line)
+  connection.console.log(tokens.length.toString())
+  if (settings.enableAutoCompletion && tokens.length) {
+    if (isRecive == false) {
+      isRecive = true
+      let filter = settings.filterAutoCompletion ? new RegExp(settings.filterAutoCompletion, 'i') : undefined
+      let autoCompletionList = <i18nParse.AutoCompletionList[]>i18nParse.getI18nKeyList(i18nFileMap, filter)
+      completionList = <CompletionItem[]>autoCompletionList.map((completion, i) => {
+        return {
+          label: completion.label,
+          data: i,
+          kind: CompletionItemKind.Text
+          // detail: completion.filePath,
+          // documentation: completion.message
+        }
+      })
+    }
+    return completionList
+  } else {
+    return []
   }
-  return completionList
 
 
 });

@@ -103,21 +103,31 @@ connection.onCompletion((textDocumentPosition) => {
     // The pass parameter contains the position of the text document in
     // which code complete got requested. For the example we ignore this
     // info and always provide the same completion items.
+    // TODO: textDocumentPosition
     // TODO: 可以使用高阶函数
-    connection.console.info(completionList.length.toString());
-    if (isRecive == false) {
-        isRecive = true;
-        let filter = settings.filterAutoCompletion ? new RegExp(settings.filterAutoCompletion, 'i') : undefined;
-        let autoCompletionList = i18nParse.getI18nKeyList(i18nFileMap, filter);
-        completionList = autoCompletionList.map((completion, i) => {
-            return {
-                label: completion.label,
-                data: i,
-                kind: vscode_languageserver_1.CompletionItemKind.Text
-            };
-        });
+    let textDocument = documents.get(textDocumentPosition.textDocument.uri);
+    let lines = textDocument.getText().split(/\r?\n/g);
+    let line = lines[textDocumentPosition.position.line];
+    let tokens = i18nParse.parseI18nSyntax(line);
+    connection.console.log(tokens.length.toString());
+    if (settings.enableAutoCompletion && tokens.length) {
+        if (isRecive == false) {
+            isRecive = true;
+            let filter = settings.filterAutoCompletion ? new RegExp(settings.filterAutoCompletion, 'i') : undefined;
+            let autoCompletionList = i18nParse.getI18nKeyList(i18nFileMap, filter);
+            completionList = autoCompletionList.map((completion, i) => {
+                return {
+                    label: completion.label,
+                    data: i,
+                    kind: vscode_languageserver_1.CompletionItemKind.Text
+                };
+            });
+        }
+        return completionList;
     }
-    return completionList;
+    else {
+        return [];
+    }
 });
 // This handler resolve additional information for the item selected in
 // the completion list.

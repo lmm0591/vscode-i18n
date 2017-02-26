@@ -32,8 +32,8 @@ export function activate(context: ExtensionContext) {
 	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(path.join('server', 'server.js'));
 	// The debug options for the server
-	// let debugOptions = { execArgv: ["--nolazy", "--debug=6009"] };
-	let debugOptions = { };
+	let debugOptions = { execArgv: ["--nolazy", "--debug=6009"] };
+	// let debugOptions = { };
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
 	let serverOptions: ServerOptions = {
@@ -60,6 +60,8 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(
 		commands.registerCommand('i18n.showMatchInfo', () => workspace.getConfiguration("i18n").update('showMatchInfo', true )),
-		commands.registerCommand('i18n.hideMatchInfo', () => workspace.getConfiguration("i18n").update('showMatchInfo', false ))
+		commands.registerCommand('i18n.hideMatchInfo', () => workspace.getConfiguration("i18n").update('showMatchInfo', false)),
+		commands.registerCommand('i18n.enableAutoCompletion', () => workspace.getConfiguration("i18n").update('enableAutoCompletion', true)),
+		commands.registerCommand('i18n.disableAutoCompletion', () => workspace.getConfiguration("i18n").update('enableAutoCompletion', false ))
 	);
 }

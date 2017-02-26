@@ -35,6 +35,10 @@
         "i18n.filterAutoCompletion":{
           "type": "string"
         },
+        "i18n.enableAutoCompletion": {
+          "type": "boolean",
+          "default": false
+        },
         "i18n.showMatchInfo": {
           "default": false,
           "type": "boolean"
@@ -51,6 +55,16 @@
         "title": "Hide Match I18N",
         "category": "I18N",
         "command": "i18n.hideMatchInfo"
+      },
+      {
+        "title": "disable AutoCompletion",
+        "category": "I18N",
+        "command": "i18n.disableAutoCompletion"
+      },
+      {
+        "title": "enable AutoCompletion",
+        "category": "I18N",
+        "command": "i18n.enableAutoCompletion"
       }
     ]
   },
