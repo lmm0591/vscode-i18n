@@ -1,65 +1,31 @@
-# vscode-i18n README
+# vscode-i18n 
 
-This is the README for your extension "vscode-i18n". After writing up a brief description, we recommend including the following sections.
+> 国际化文件识别插件
 
-## Features
+## 特点
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 标识出文件中包含的翻译语言的 KEY 与不存在的 KEY
+- 智能补全翻译文件的KEY
 
-For example if there is an image subfolder under your extension project workspace:
+## 设置参数
 
-\!\[feature X\]\(images/feature-x.png\)
+配置文件路径为 `.vscode/settings.json`
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+配置项如下:
 
-## Requirements
+* `i18n.dirs`: 设置一组 i18n 目录 , 默认：`./i18n`
+* `i18n.filterAutoCompletion`: 代码补全使用的 i18n 目录
+* `i18n.enableAutoCompletion`: `true/false` 启用/禁用 代码补全 , 默认：`true`
+* `i18n.showMatchInfo`: 显示匹配到的 KEY , 默认：`false`
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## 命令
 
-## Extension Settings
+* Show Match I18N
+* Hide Match I18N
+* Disable AutoCompletion
+* Enable AutoCompletion
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
-For example:
+### 0.0.1
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on OSX or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on OSX or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (OSX) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+踩坑版，谁叫我是敏捷开发呢？

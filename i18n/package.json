@@ -8,10 +8,11 @@
     "vscode": "^1.6.0"
   },
   "categories": [
-    "Other"
+    "Extension Packs"
   ],
   "activationEvents": [
-    "onLanguage:javascript"
+    "onLanguage:javascript",
+    "onLanguage:vue"
   ],
   "main": "./out/src/extension",
   "contributes": {
