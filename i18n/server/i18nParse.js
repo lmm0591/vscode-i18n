@@ -14,16 +14,18 @@ function parseI18nSyntax(text) {
     return syntaxs;
 }
 exports.parseI18nSyntax = parseI18nSyntax;
-function getI18nKeyList(fileMap) {
+function getI18nKeyList(fileMap, filter = new RegExp('^.+$', "i")) {
     let completionList = [];
     for (var fileName in fileMap) {
-        var file = fileMap[fileName];
-        for (let key in file.content) {
-            completionList.push({
-                label: key,
-                message: file.content[key],
-                filePath: file.path
-            });
+        if (filter.test(fileName)) {
+            var file = fileMap[fileName];
+            for (let key in file.content) {
+                completionList.push({
+                    label: key,
+                    message: file.content[key],
+                    filePath: file.path
+                });
+            }
         }
     }
     return completionList;
@@ -34,11 +36,9 @@ function parseContent(line, fileMap, captureFn, failFn) {
     i18nSyntaxs.forEach(i18nSyntax => {
         let isMatchFile = false;
         for (var fileName in fileMap) {
-            for (let key in fileMap[fileName].content) {
-                if (key === i18nSyntax.capture) {
-                    isMatchFile = true;
-                    captureFn(i18nSyntax, fileMap[fileName]);
-                }
+            if (fileMap[fileName].content[i18nSyntax.capture]) {
+                isMatchFile = true;
+                captureFn(i18nSyntax, fileMap[fileName]);
             }
         }
         let isReciveI18NMap = Object.keys(fileMap).length > 0;

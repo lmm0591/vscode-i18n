@@ -2,7 +2,7 @@
 export interface I18nSyntax {
 	start: number,
 	end: number,
-	capture: String
+	capture: string
 }
 
 export interface AutoCompletionList {
@@ -31,16 +31,18 @@ function parseI18nSyntax(text: string): I18nSyntax [] {
 	return syntaxs
 }
 
-function getI18nKeyList(fileMap: Object): AutoCompletionList[] {
+function getI18nKeyList(fileMap: Object, filter : RegExp = new RegExp('^.+$', "i")): AutoCompletionList[] {
   let completionList: AutoCompletionList[] = []
   for (var fileName in fileMap) {
-    var file = <i18nFile>fileMap[fileName];
-    for (let key in file.content) {
-      completionList.push({
-        label: key,
-        message: file.content[key],
-        filePath: file.path
-      })
+    if (filter.test(fileName)) {
+      var file = <i18nFile>fileMap[fileName];
+      for (let key in file.content) {
+        completionList.push({
+          label: key,
+          message: file.content[key],
+          filePath: file.path
+        })
+      }
     }
   }
   return completionList
@@ -51,11 +53,9 @@ function parseContent(line: string, fileMap: Object, captureFn: Function, failFn
   i18nSyntaxs.forEach(i18nSyntax => {
     let isMatchFile : boolean = false
     for (var fileName in fileMap) {
-      for (let key in fileMap[fileName].content) {
-        if (key === i18nSyntax.capture) {
-          isMatchFile = true
-          captureFn(i18nSyntax, fileMap[fileName])
-        }
+      if (fileMap[fileName].content[i18nSyntax.capture]) {
+        isMatchFile = true
+        captureFn(i18nSyntax, fileMap[fileName])
       }
     }
     let isReciveI18NMap: boolean = Object.keys(fileMap).length > 0;

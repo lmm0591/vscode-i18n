@@ -32,6 +32,9 @@
             ]
           }
         },
+        "i18n.filterAutoCompletion":{
+          "type": "string"
+        },
         "i18n.showMatchInfo": {
           "default": false,
           "type": "boolean"

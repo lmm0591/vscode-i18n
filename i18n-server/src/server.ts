@@ -53,7 +53,8 @@ documents.onDidChangeContent((change) => {
 // The settings interface describe the server relevant settings part
 interface Settings {
   dirs: string[],
-  showMatchInfo: boolean
+  showMatchInfo: boolean,
+  filterAutoCompletion: string
 }
 
 let i18nDirs: string[];
@@ -130,7 +131,8 @@ connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): Comp
   connection.console.info(completionList.length.toString())
   if (isRecive == false) {
     isRecive = true
-    let autoCompletionList = <i18nParse.AutoCompletionList[]>i18nParse.getI18nKeyList(i18nFileMap)
+    let filter = settings.filterAutoCompletion ? new RegExp(settings.filterAutoCompletion, 'i') : undefined
+    let autoCompletionList = <i18nParse.AutoCompletionList[]>i18nParse.getI18nKeyList(i18nFileMap, filter)
     completionList = <CompletionItem[]> autoCompletionList.map((completion, i) => {
       return {
         label: completion.label,

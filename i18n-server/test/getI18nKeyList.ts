@@ -35,4 +35,17 @@ suite("getI18nKeyList", () => {
       assert.equal(keyList[2].message, '组织机构')
     })
 
+    test("过滤文件", () => {
+      let keyList = i18nParse.getI18nKeyList(fileMap, /a.js/)
+      assert.equal(keyList[0].filePath, 'a.js')
+      assert.equal(keyList[0].label, 'NAME')
+      assert.equal(keyList[0].message, '名字')
+
+      assert.equal(keyList[1].filePath, 'a.js')
+      assert.equal(keyList[1].label, 'ND')
+      assert.equal(keyList[1].message, '网龙')
+
+      assert.equal(keyList.length, 2)
+    })
+
 });

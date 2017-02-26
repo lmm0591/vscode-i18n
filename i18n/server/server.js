@@ -107,7 +107,8 @@ connection.onCompletion((textDocumentPosition) => {
     connection.console.info(completionList.length.toString());
     if (isRecive == false) {
         isRecive = true;
-        let autoCompletionList = i18nParse.getI18nKeyList(i18nFileMap);
+        let filter = settings.filterAutoCompletion ? new RegExp(settings.filterAutoCompletion, 'i') : undefined;
+        let autoCompletionList = i18nParse.getI18nKeyList(i18nFileMap, filter);
         completionList = autoCompletionList.map((completion, i) => {
             return {
                 label: completion.label,
