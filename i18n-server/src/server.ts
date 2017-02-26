@@ -14,7 +14,6 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as filter from 'filter-files';
-import { findWhere } from 'underscore'
 import * as i18nParse from './i18nParse';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport

@@ -1,7 +1,7 @@
 {
   "name": "vscode-i18n",
   "displayName": "vscode-i18n",
-  "description": "",
+  "description": "i18n 插件",
   "version": "0.0.1",
   "publisher": "lmm0591",
   "engines": {
@@ -37,7 +37,7 @@
         },
         "i18n.enableAutoCompletion": {
           "type": "boolean",
-          "default": false
+          "default": true
         },
         "i18n.showMatchInfo": {
           "default": false,
